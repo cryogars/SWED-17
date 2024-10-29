@@ -11,16 +11,28 @@
 # Example call
 #   aso_import.sh -s data/ASO_SWE.tif -d data/20240101_SWE
 #
-# NOTE:
-#   The DB source file is only temporary as the whole raster is imported
+# ASO UC extent for all flights in EPSG:32613
+#   -te 231453.000 4530200.00 446853.203 4129449.623
+# Converted with: cs2cs --only-best -f "%.8f" EPSG:32613 EPSG:4269  
+#   -te -108.18706066 40.87885627 -105.59976043 37.31016729 
+
 set -e
 
 source import_script_options.sh
 
 TABLE='aso'
 
-# NOTE: This will update the $DB_FILE variable
-source ./convert_to_db_tif.sh ${DB_FILE} ${SOURCE_FILE}
+DB_FILE="${DB_FILE}_db.tif"
+
+gdalwarp \
+    -overwrite -multi \
+    -te 231453.000 4530200.00 446853.203 4129449.623 \
+    -co TILED=YES \
+    -co COMPRESS=ZSTD \
+    -co PREDICTOR=2 \
+    -co NUM_THREADS=ALL_CPUS \
+    ${SOURCE_FILE} ${DB_FILE}
+
 
 if [[ "$IMPORT_MODE" == "$APPEND_RECORDS" ]]; then
     POST_STEP="-p 005-update_aso_records.sql"
