@@ -1,35 +1,30 @@
 #/usr/bin/env bash
 #
-# Import snow.nc file from iSnobal
+# Import snow.nc file from iSnobal and store in the DB.
 #
-# Script assumes:
-# * Import a file to the database if given one argument
-#   Example: 006-isnobal.sh path/to/snow.tif
-# * Convert iSnobal snow.nc and import to the database if given a second argument
-#   Example: 006-isnobal.sh path/to/snow.tif NETCDF:"data/20230401_iSnobal_ERW_snow.nc":specific_mass
+# Arguments:
+#   -s: Path to file to import
+#   -c Create table and import records
+#   -a Append records to table (Default)
+#   -d: Name of DB source file to create
+#       Required pattern: YYYYMMDD_file_name
+# Example call:
+#   isnobal.sh -s NETCDF:"data/20230401_iSnobal_ERW_snow.nc":specific_mass -d db_import/20240101_isnobal
 set -e
 
-if [ ! -z ${2} ]; then
+source import_script_options.sh
 
-  # Remove old file if present
-  if [ -f ${1} ]; then
-    rm ${1}
-  fi
+TABLE='isnobal'
 
-gdalwarp -t_srs EPSG:4269 \
-    -co TILED=YES \
-    -co COMPRESS=ZSTD \
-    -co PREDICTOR=2 \
-    -co NUM_THREADS=ALL_CPUS \
-    ${2} ${1}
+# NOTE: This will update the $DB_FILE variable
+source ./convert_to_db_tif.sh ${DB_FILE} ${SOURCE_FILE}
 
+if [[ "$IMPORT_MODE" == "$APPEND_RECORDS" ]]; then
+    POST_STEP="-p 006-update_isnobal.sql"
+elif [[ "$IMPORT_MODE" == "$CREATE_TABLE" ]]; then
+    POST_STEP="-p 006-update_isnobal_table.sql"
 fi
 
-# Import the entire raster into the database
-# Note the -x option that does not add a max extent contraint to the table
-raster2pgsql -I -C -M -x -d -F -Y -t 32x32 \
-    $(realpath ${1}) isnobal | \
-    psql -U oper -h mujeres -d swe_data
+./import_to_db.sh -f ${DB_FILE} -t ${TABLE} ${IMPORT_MODE} ${POST_STEP}
 
-# Add date column with index based on filenames and link to cbrfc zones
-psql -U oper -h mujeres -d swe_data -f 006-update_isnobal.sql
+rm ${DB_FILE}
