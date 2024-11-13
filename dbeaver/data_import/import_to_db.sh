@@ -73,7 +73,7 @@ if [[ ! -z ${OUT_DB_RASTER} ]]; then
 fi
 
 # Import metadata to database
-raster2pgsql ${IMPORT_MODE} -M -F ${OUT_DB_RASTER} -Y -t 32x32 \
+raster2pgsql ${IMPORT_MODE} -M -F ${OUT_DB_RASTER} -Y -l 2,3 -t 32x32 \
     ${FILE} ${TABLE} | \
     psql ${DB_CONNECT_OPTIONS}
 
