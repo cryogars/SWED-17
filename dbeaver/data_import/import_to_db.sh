@@ -67,9 +67,14 @@ while true; do
     esac
 done
 
+# Set absolute file path for out-db rasters
+if [[ ! -z ${OUT_DB_RASTER} ]]; then
+    FILE=$(realpath ${FILE})
+fi
+
 # Import metadata to database
 raster2pgsql ${IMPORT_MODE} -M -F ${OUT_DB_RASTER} -Y -t 32x32 \
-    $(realpath ${FILE}) ${TABLE} | \
+    ${FILE} ${TABLE} | \
     psql ${DB_CONNECT_OPTIONS}
 
 # Process post import script
