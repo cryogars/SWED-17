@@ -9,7 +9,7 @@
 #   -d: Name of DB source file to create
 #       Required pattern: YYYYMMDD_file_name
 # Example call
-#   snodas_import.sh -s data/snodas_SWE.tif -d data/20240102_SWE
+#   snodas_import.sh -s data/snodas_SWE.dat -d db_data/20240102_SWE
 
 set -e
 
