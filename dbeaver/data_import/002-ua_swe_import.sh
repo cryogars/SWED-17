@@ -9,7 +9,9 @@
 #   -d: Name of DB source file to create
 #       Required pattern: YYYYMMDD_file_name
 # Example call
-#   ua_swe_import.sh -s NETCDF="data/UA_SWE.nc":SWE -d 
+#   ua_swe_import.sh -s NETCDF="data/UA_SWE.nc":SWE -d db_data/20240101_SWE
+# Stream straight from website
+#  ua_swe_import.sh -s NETCDF:"/vsicurl/https://climate.arizona.edu/data/UA_SWE/DailyData_800m/WY2024/UA_SWE_Depth_800m_v1_20240430_stable.nc":SWE -d db_data/20240430_SWE
 
 set -e
 
