@@ -1,5 +1,5 @@
-#/usr/bin/env bash
-# 
+#!/usr/bin/env bash
+#
 # Import ASO SWE tifs
 #
 # Arguments:
@@ -13,8 +13,8 @@
 #
 # ASO UC extent for all flights in EPSG:32613
 #   -te 231453.000 4530200.00 446853.203 4129449.623
-# Converted with: cs2cs --only-best -f "%.8f" EPSG:32613 EPSG:4269  
-#   -te -108.18706066 40.87885627 -105.59976043 37.31016729 
+# Converted with: cs2cs --only-best -f "%.8f" EPSG:32613 EPSG:4269
+#   -te -108.18706066 40.87885627 -105.59976043 37.31016729
 
 set -e
 

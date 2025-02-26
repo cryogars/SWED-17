@@ -19,8 +19,8 @@ IMPORT_MODE=$APPEND_RECORDS
 DB_FILE_PATTERN="^([0-9]{8}_).*"
 
 # Script argument options
-LONG_OPTIONS=source:db-file:create,append
-SHORT_OPTIONS=s:d:ca
+LONG_OPTIONS=source:db-file:table:create,append
+SHORT_OPTIONS=s:d:t:ca
 
 # Parse arguments and set variables
 ARGUMENTS=$(getopt --options=${SHORT_OPTIONS} --longoptions=${LONG_OPTIONS} --name $0 -- "$@") || exit 1
@@ -42,6 +42,10 @@ while true; do
             ;;
         -d|--db-file)
             DB_FILE="$2"
+            shift 2
+            ;;
+        -t|--table)
+            TABLE="$2"
             shift 2
             ;;
         --)
