@@ -12,7 +12,7 @@
 
 set -e
 
-DB_CONNECT_OPTIONS='-h mujeres -U oper -d swe_data'
+DB_CONNECT_OPTIONS='service=swe_db'
 # Treat files as out-db or import the actual data
 OUT_DB_RASTER=""
 
