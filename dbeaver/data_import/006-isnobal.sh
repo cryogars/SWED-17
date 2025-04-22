@@ -1,4 +1,4 @@
-#/usr/bin/env bash
+#!/usr/bin/env bash
 #
 # Import snow.nc file from iSnobal and store in the DB.
 #
