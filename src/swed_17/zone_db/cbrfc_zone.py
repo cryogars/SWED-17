@@ -76,4 +76,4 @@ class CBRFCZone(Base):
         list[str]
             List with zone name
         """
-        return self.zone_in_ch5_ids([ch5_id])
+        return self.from_ch5_ids([ch5_id])
