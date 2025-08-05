@@ -15,9 +15,11 @@ class CBRFCZoneRow:
 
 
 class CBRFCZone(Base):
-    ZONES_IN_CH5ID = "SELECT cz.gid, cz.ch5_id, cz.zone, cz.description " \
-                     "FROM cbrfc_zones CZ " \
-                     "WHERE CH5_ID = ANY(%s)"
+    ZONES_IN_CH5ID = (
+        "SELECT cz.gid, cc.ch5_id, cz.zone, cc.description "
+        "FROM cbrfc_zones cz, cbrfc_ch5id cc "
+        "WHERE cc.CH5_ID = ANY(%s) AND cz.ch5_id = cc.id"
+    )
 
     def as_rio(self, zone_name: str) -> MemoryFile:
         """
