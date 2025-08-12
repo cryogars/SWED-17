@@ -10,13 +10,14 @@ from .base import Base
 class CBRFCZoneRow:
     gid: int
     ch5_id: str
+    segment: str
     zone: str
     description: str
 
 
 class CBRFCZone(Base):
     ZONES_IN_CH5ID = (
-        "SELECT cz.gid, cc.ch5_id, cz.zone, cc.description "
+        "SELECT cz.gid, cc.ch5_id, cz.segment, cz.zone, cc.description "
         "FROM cbrfc_zones cz, cbrfc_ch5id cc "
         "WHERE cc.CH5_ID = ANY(%s) AND cz.ch5_id = cc.id"
     )
