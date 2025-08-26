@@ -76,7 +76,9 @@ class Base:
 
         engine = create_engine(self.pd_connection_info())
         with engine.connect() as connection:
-            dataframe.to_sql(table_name, con=connection, if_exists='append')
+            dataframe.to_sql(
+                table_name, con=connection, if_exists="append", index=False
+            )
 
     def pd_connection_info(self):
         """
@@ -85,5 +87,9 @@ class Base:
         Pandas needs an explicit defintion in the string to indicate psycopg
         use.
         """
-        connection_info = self._connection_info.split('://')
-        return self.PSYCOPG_PROTOCOL + connection_info[1]
+        if "://" in self._connection_info:
+            connection_info = self._connection_info.split("://")[1]
+        else:
+            connection_info = "?" + self._connection_info
+
+        return self.PSYCOPG_PROTOCOL + connection_info

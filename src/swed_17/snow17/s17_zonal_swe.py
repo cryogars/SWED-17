@@ -5,13 +5,20 @@ class S17ZonalSWE:
     """
     Zonal SWE query result transformer
 
-    This is a helper class to transform a db query result into a pandas 
+    This is a helper class to transform a db query result into a pandas
     dataframe
     """
     INCH_TO_MM = 25.4
     SWE_COLUMN = 'SWE (in)'
     SWE_COLUMN_MM = 'SWE (mm)'
-    COLUMN_MAPPING = ['Zone Name', 'Year', 'Month', 'Day', SWE_COLUMN]
+    COLUMN_MAPPING = [
+        "Segment",
+        "Zone Name",
+        "Year",
+        "Month",
+        "Day",
+        SWE_COLUMN,
+    ]
 
     @classmethod
     def as_df(cls, df: pd.DataFrame):
