@@ -1,10 +1,14 @@
 # Project specific
-notebooks/nb_paths.py
+nb_paths.py
+experiments/
 
 # DBeaver
 .project
 .dbeaver
 dbeaver/Scripts/Script.sql
+
+# Directory for log files
+logs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
