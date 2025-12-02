@@ -1,5 +1,6 @@
 # Project specific
-nb_paths.py
+dash/nb_paths.py
+notebooks/nb_paths.py
 experiments/
 
 # DBeaver
