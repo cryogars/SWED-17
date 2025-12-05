@@ -18,7 +18,7 @@ source ${SCRIPT_PATH}/import_script_options.sh
 TABLE='cu_boulder'
 
 # NOTE: This will update the $DB_FILE variable
-source ${SCRIPT_PATH}/convert_to_db_tif.sh ${DB_FILE} ${SOURCE_FILE} "EPSG:4269"
+source ${SCRIPT_PATH}/convert_to_db_tif.sh ${DB_FILE} ${SOURCE_FILE}
 
 if [[ "$IMPORT_MODE" == "$APPEND_RECORDS" ]]; then
     POST_STEP="003-update_cub_records.sql"
