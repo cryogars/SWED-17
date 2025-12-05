@@ -7,27 +7,24 @@ import xarray as xr
 
 from psycopg import sql
 
-from nb_paths import HOST_IP, BASE_DIR, ZONE_DB, SNOW17_DB
+from nb_paths import HOST_IP, MODEL_DOMAINS, BASIN_DIR, ZONE_DB, SNOW17_DB
 
 import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output
 import dash_bootstrap_components as dbc
 
-BASIN_DIR = BASE_DIR + "basinSetup"
-SNOBAL_DIR = BASE_DIR + "isnobal"
-
-ZONE_QUERY = (
-    "SELECT cz.gid, cc.ch5_id, cz.segment, cz.zone, cc.description "
-    "FROM cbrfc_zones cz LEFT JOIN cbrfc_ch5id cc ON cz.ch5_id = cc.id "
-    "WHERE cz.gid in ({})"
-)
-ISNOBAL_SWE_QUERY = (
-    "SELECT izs.value, izs.datetime::date, cz.zone "
-    "FROM isnobal_zonal_swe izs LEFT JOIN cbrfc_zones cz "
-    "ON izs.cbrfc_zone_id = cz.gid "
-    "WHERE cbrfc_zone_id in ({}) AND datetime >= {} AND "
-    "EXTRACT(HOUR FROM izs.datetime) = 00"
-)
+ZONE_QUERY = """
+SELECT cz.gid, cc.ch5_id, cz.segment, cz.zone, cc.description
+ FROM cbrfc_zones cz LEFT JOIN cbrfc_ch5id cc ON cz.ch5_id = cc.id
+ WHERE cz.gid in ({});
+"""
+ISNOBAL_SWE_QUERY = """
+SELECT izs.value, izs.datetime::date, cz.zone
+ FROM isnobal_zonal_swe izs LEFT JOIN cbrfc_zones cz
+ ON izs.cbrfc_zone_id = cz.gid
+ WHERE cbrfc_zone_id in ({}) AND datetime >= {} AND
+ EXTRACT(HOUR FROM izs.datetime) = 00;
+"""
 
 COLORS = {
     'UF': 'steelblue',
@@ -39,28 +36,27 @@ COLORS = {
 
 zone_ids = []
 
-for domain in ['erw_ext', 'wg_blue']:
-    erw_topo = xr.open_dataset(BASIN_DIR + f'/{domain}_topo.nc')
-    zone_ids = np.append(zone_ids, np.unique(erw_topo.cbrfc_zone.values))
-
+for domain in MODEL_DOMAINS:
+    domain = xr.open_dataset(BASIN_DIR + f"/{domain}_topo.nc")
+    zone_ids = np.append(zone_ids, np.unique(domain.cbrfc_zone.values))
 
 zone_query = sql.SQL(ZONE_QUERY).format(
     sql.SQL(",").join(map(sql.Literal, zone_ids))
 )
 
-with ZONE_DB.query(ZONE_QUERY) as results:
+with ZONE_DB.query(zone_query) as results:
     zones = pd.DataFrame(
         results.fetchall(),
         columns=['ID', 'CH5ID', 'Segment', 'Zone Name', 'Description']
     ).set_index('ID')
 
 
-def isnobal_swe_for_zone(zone_ids: []):
+def isnobal_swe_for_zone(zone_ids: list = []):
     zone_query = sql.SQL(ISNOBAL_SWE_QUERY).format(
         sql.SQL(",").join(map(sql.Literal, zone_ids)), "2021-10-01"
     )
 
-    with ZONE_DB.query(ZONE_QUERY) as results:
+    with ZONE_DB.query(zone_query) as results:
         isnobal_swe = pd.DataFrame(
             results.fetchall(),
             columns=["iSnobal SWE", "Date", "Zone Name"],
@@ -155,7 +151,7 @@ def update_output(value):
                 name=f"iSnobal {zone_index}",
                 mode="lines",
                 line=dict(
-                    color=colors[zone_index],
+                    color=COLORS[zone_index],
                     dash="8px 3px",
                 ),
                 visible=False,
@@ -167,7 +163,7 @@ def update_output(value):
                 y=df_group["Snow-17 SWE"],
                 name=f"Snow-17 {zone_index}",
                 mode="lines",
-                line=dict(color=colors[zone_index]),
+                line=dict(color=COLORS[zone_index]),
                 visible=False,
             )
         )
