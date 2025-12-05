@@ -1,5 +1,6 @@
 # Project specific
 dash/nb_paths.py
+dash/gunicorn.pid
 notebooks/nb_paths.py
 experiments/
 
