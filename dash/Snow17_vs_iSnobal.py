@@ -93,27 +93,39 @@ app = Dash(
 )
 server = app.server
 
-app.layout = dbc.Container([
-    dbc.Row([
-        html.H3('SWE by zones')
-    ]),
-    dbc.Row([
-        dbc.Col([
-            html.P('Select zone'),
-            dcc.Dropdown(
-                id='segment-dropdown',
-                options=basin_options,
-                clearable=False,
+app.layout = dbc.Container(
+    [
+        dbc.Row([html.H3("SWE by zones")]),
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        html.P("Select zone"),
+                        dcc.Dropdown(
+                            id="segment-dropdown",
+                            options=basin_options,
+                            clearable=False,
+                        ),
+                    ],
+                    width=5,
                 ),
-            ], width=5
+            ]
         ),
-    ]),
-    dbc.Row([
-        dbc.Col([
-            dcc.Graph(id='swe-figure')
-        ])
-    ])
-])
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        dcc.Loading(
+                            id="loading-animation",
+                            type="circle",
+                            children=[dcc.Graph(id="swe-figure")],
+                        ),
+                    ]
+                ),
+            ]
+        ),
+    ]
+)
 
 @app.callback(
     Output("swe-figure", "figure"), Input("segment-dropdown", "value")
