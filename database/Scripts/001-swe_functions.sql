@@ -71,3 +71,36 @@ BEGIN
 END
 $function$
 ;
+
+-- Function to query a SWE product for given zone across all available dates
+
+DROP FUNCTION IF EXISTS public.swe_from_product_for_zone;
+CREATE OR REPLACE FUNCTION public.swe_from_product_for_zone(
+    product text, zone_name text
+)
+RETURNS TABLE(swe_date date, swe double PRECISION)
+LANGUAGE plpgsql
+AS $function$
+BEGIN
+    RETURN QUERY EXECUTE FORMAT(
+        'WITH cbrfc_zone AS (
+            SELECT * FROM transform_zone($1, $2)
+        ),
+        product_pixels AS (
+            SELECT
+                (ST_PixelAsCentroids(
+                    ST_CLIP(r.rast, cz.geom, true)
+                )
+            ).*,
+            r.swe_date
+            FROM %1$I AS r
+            JOIN cbrfc_zone AS cz ON r.rast && cz.transformed_envelope
+        )
+        SELECT pp.swe_date, avg(pp.val)
+        FROM product_pixels as pp
+        GROUP BY pp.swe_date',
+        product
+    ) USING product, zone_name;
+END
+$function$
+;
