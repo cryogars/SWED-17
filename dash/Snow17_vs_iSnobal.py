@@ -128,13 +128,19 @@ app.layout = dbc.Container(
                         dcc.Loading(
                             id="loading-animation",
                             type="circle",
-                            children=[dcc.Graph(id="swe-figure")],
+                            children=[
+                                dcc.Graph(
+                                    id="swe-figure",
+                                    config={"responsive": True},
+                                )
+                            ],
                         ),
                     ]
                 ),
             ]
         ),
-    ]
+    ],
+    fluid=True,
 )
 
 def add_scatter_line(df_group: pd.DataFrame, product: str, zone_index: str):
@@ -210,8 +216,6 @@ def update_output(value):
             title=dict(text="Zonal SWE"),
             xaxis=dict(title="Date"),
             yaxis=dict(title="SWE (mm)"),
-            height=600,
-            width=1400,
         )
     )
 
