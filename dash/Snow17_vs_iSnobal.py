@@ -25,7 +25,7 @@ SELECT *
     cbrfc_zone_id in ({}) AND
     date >= to_date({}, 'YYYY-MM-DD')
 """
-DATASETS = ["Snow-17", "iSnobal", "SNODAS", "UArizona"]
+DATASETS = ["Snow-17", "iSnobal", "SNODAS", "UArizona", "CU Boulder", "ASO"]
 COLORS = {
     'UF': 'steelblue',
     'MF': 'goldenrod',
@@ -65,6 +65,8 @@ def swe_for_zone(zone_ids: list = []):
                 "iSnobal",
                 "SNODAS",
                 "UArizona",
+                "CU Boulder",
+                "ASO",
                 "ID",
             ],
         )
@@ -136,25 +138,63 @@ app.layout = dbc.Container(
 )
 
 def add_scatter_line(df_group: pd.DataFrame, product: str, zone_index: str):
-    line_style = dict(
-        color=COLORS[zone_index],
-    )
+    style_opts = {}
     if product == "iSnobal":
-        line_style["dash"] = "8px 3px"
+        style_opts = {
+            "mode": "lines",
+            "line": {
+                "color": COLORS[zone_index],
+                "dash": "8px 3px",
+            },
+        }
     elif product == "SNODAS":
-        line_style["dash"] = "16px 3px"
+        style_opts = {
+            "mode": "lines",
+            "line": {
+                "color": COLORS[zone_index],
+                "dash": "16px 3px",
+            },
+        }
     elif product == "UArizona":
-        line_style["dash"] = "24px 3px"
+        style_opts = {
+            "mode": "lines",
+            "line": {
+                "color": COLORS[zone_index],
+                "dash": "24px 3px",
+            },
+        }
+    elif product == "CU Boulder":
+        style_opts = {
+            "mode": "markers",
+            "marker": {
+                "color": COLORS[zone_index],
+                "symbol": "triangle-up",
+                "size": 8,
+            },
+        }
+    elif product == "ASO":
+        style_opts = {
+            "mode": "markers",
+            "marker": {
+                "color": COLORS[zone_index],
+                "symbol": "circle",
+                "size": 8,
+            },
+        }
     else:  # Snow-17
-        line_style["width"] = 3
+        style_opts = {
+            "mode": "lines",
+            "line": {
+                "color": COLORS[zone_index],
+                "width": 3,
+            },
+        }
 
     return go.Scatter(
         x=df_group.index.tolist(),
         y=df_group[product],
         name=f"{product} {zone_index}",
-        mode="lines",
-        line=line_style,
-        visible=False,
+        **style_opts,
     )
 
 
