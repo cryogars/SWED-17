@@ -7,7 +7,7 @@ import xarray as xr
 
 from psycopg import sql
 
-from nb_paths import HOST_IP, MODEL_DOMAINS, BASIN_DIR, ZONE_DB, SNOW17_DB
+from nb_paths import HOST_IP, MODEL_DOMAINS, BASIN_DIR, SWE_DB, SNOW17_DB
 
 import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output
@@ -18,14 +18,14 @@ SELECT cz.gid, cc.ch5_id, cz.segment, cz.zone, cc.description
  FROM cbrfc_zones cz LEFT JOIN cbrfc_ch5id cc ON cz.ch5_id = cc.id
  WHERE cz.gid in ({});
 """
-ISNOBAL_SWE_QUERY = """
-SELECT izs.value, izs.datetime::date, cz.zone
- FROM isnobal_zonal_swe izs LEFT JOIN cbrfc_zones cz
- ON izs.cbrfc_zone_id = cz.gid
- WHERE cbrfc_zone_id in ({}) AND datetime >= {} AND
- EXTRACT(HOUR FROM izs.datetime) = 00;
+SWE_QUERY = """
+SELECT *
+ FROM public.zonal_swe
+ WHERE
+    cbrfc_zone_id in ({}) AND
+    date >= to_date({}, 'YYYY-MM-DD')
 """
-
+DATASETS = ["Snow-17", "iSnobal", "SNODAS", "UArizona"]
 COLORS = {
     'UF': 'steelblue',
     'MF': 'goldenrod',
@@ -44,35 +44,43 @@ zone_query = sql.SQL(ZONE_QUERY).format(
     sql.SQL(",").join(map(sql.Literal, zone_ids))
 )
 
-with ZONE_DB.query(zone_query) as results:
+with SWE_DB.query(zone_query) as results:
     zones = pd.DataFrame(
         results.fetchall(),
         columns=['ID', 'CH5ID', 'Segment', 'Zone Name', 'Description']
     ).set_index('ID')
 
 
-def isnobal_swe_for_zone(zone_ids: list = []):
-    zone_query = sql.SQL(ISNOBAL_SWE_QUERY).format(
+def swe_for_zone(zone_ids: list = []):
+    zone_query = sql.SQL(SWE_QUERY).format(
         sql.SQL(",").join(map(sql.Literal, zone_ids)), "2021-10-01"
     )
 
-    with ZONE_DB.query(zone_query) as results:
-        isnobal_swe = pd.DataFrame(
+    with SWE_DB.query(zone_query) as results:
+        swe = pd.DataFrame(
             results.fetchall(),
-            columns=["iSnobal SWE", "Date", "Zone Name"],
+            columns=[
+                "Date",
+                "Zone Name",
+                "iSnobal",
+                "SNODAS",
+                "UArizona",
+                "ID",
+            ],
         )
-    isnobal_swe["Date"] = pd.to_datetime(isnobal_swe["Date"])
-    isnobal_swe["Zone Name"] = isnobal_swe["Zone Name"].astype("string")
+    swe["Zone Name"] = swe["Zone Name"].astype("string")
 
-    return isnobal_swe
+    return swe
 
 
 def snow_17_swe_for_zone(zone_id):
     df = SNOW17_DB.for_zone_forecasted(zone_id, from_year=2021)
-    df.rename(columns={"SWE (mm)": "Snow-17 SWE"}, inplace=True)
+    df.rename(columns={"SWE (mm)": "Snow-17"}, inplace=True)
     df["Zone Name"] = df["Zone Name"].astype("string")
     # Need to reset index to be able to merge on Date and Zone Name
-    return df.reset_index()
+    df = df.reset_index()
+    df["Date"] = df["Date"].dt.tz_localize("UTC")
+    return df
 
 
 # Dash App
@@ -127,6 +135,29 @@ app.layout = dbc.Container(
     ]
 )
 
+def add_scatter_line(df_group: pd.DataFrame, product: str, zone_index: str):
+    line_style = dict(
+        color=COLORS[zone_index],
+    )
+    if product == "iSnobal":
+        line_style["dash"] = "8px 3px"
+    elif product == "SNODAS":
+        line_style["dash"] = "16px 3px"
+    elif product == "UArizona":
+        line_style["dash"] = "24px 3px"
+    else:  # Snow-17
+        line_style["width"] = 3
+
+    return go.Scatter(
+        x=df_group.index.tolist(),
+        y=df_group[product],
+        name=f"{product} {zone_index}",
+        mode="lines",
+        line=line_style,
+        visible=False,
+    )
+
+
 @app.callback(
     Output("swe-figure", "figure"), Input("segment-dropdown", "value")
 )
@@ -149,36 +180,15 @@ def update_output(value):
 
     df = pd.merge(
         snow_17_swe_for_zone(segment),
-        isnobal_swe_for_zone(zone_ids),
+        swe_for_zone(zone_ids),
         on=["Date", "Zone Name"],
         how="inner",
     ).set_index("Date")
 
     for name, df_group in df.groupby("Zone Name"):
         zone_index = name[6:8]
-        figure.add_trace(
-            go.Scatter(
-                x=df_group.index.tolist(),
-                y=df_group["iSnobal SWE"],
-                name=f"iSnobal {zone_index}",
-                mode="lines",
-                line=dict(
-                    color=COLORS[zone_index],
-                    dash="8px 3px",
-                ),
-                visible=False,
-            )
-        )
-        figure.add_trace(
-            go.Scatter(
-                x=df_group.index.tolist(),
-                y=df_group["Snow-17 SWE"],
-                name=f"Snow-17 {zone_index}",
-                mode="lines",
-                line=dict(color=COLORS[zone_index]),
-                visible=False,
-            )
-        )
+        for dataset in DATASETS:
+            figure.add_trace(add_scatter_line(df_group, dataset, zone_index))
     figure.update_traces(visible=True)
     figure.update_layout(template="plotly_white")
 
