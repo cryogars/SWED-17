@@ -13,6 +13,7 @@ import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output
 import dash_bootstrap_components as dbc
 
+START_DATE = "2020-10-01"
 ZONE_QUERY = """
 SELECT cz.gid, cc.ch5_id, cz.segment, cz.zone, cc.description
  FROM cbrfc_zones cz LEFT JOIN cbrfc_ch5id cc ON cz.ch5_id = cc.id
@@ -53,7 +54,7 @@ with SWE_DB.query(zone_query) as results:
 
 def swe_for_zone(zone_ids: list = []):
     zone_query = sql.SQL(SWE_QUERY).format(
-        sql.SQL(",").join(map(sql.Literal, zone_ids)), "2021-10-01"
+        sql.SQL(",").join(map(sql.Literal, zone_ids)), START_DATE
     )
 
     with SWE_DB.query(zone_query) as results:
@@ -76,7 +77,7 @@ def swe_for_zone(zone_ids: list = []):
 
 
 def snow_17_swe_for_zone(zone_id):
-    df = SNOW17_DB.for_zone_forecasted(zone_id, from_year=2021)
+    df = SNOW17_DB.for_zone_forecasted(zone_id, from_year=START_DATE[0:4])
     df.rename(columns={"SWE (mm)": "Snow-17"}, inplace=True)
     df["Zone Name"] = df["Zone Name"].astype("string")
     # Need to reset index to be able to merge on Date and Zone Name
