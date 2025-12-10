@@ -176,7 +176,7 @@ def add_scatter_line(df_group: pd.DataFrame, product: str, zone_index: str):
             "marker": {
                 "color": COLORS[zone_index],
                 "symbol": "triangle-up",
-                "size": 8,
+                "size": 10,
             },
         }
     elif product == "ASO":
@@ -185,7 +185,7 @@ def add_scatter_line(df_group: pd.DataFrame, product: str, zone_index: str):
             "marker": {
                 "color": COLORS[zone_index],
                 "symbol": "circle",
-                "size": 8,
+                "size": 10,
             },
         }
     else:  # Snow-17
@@ -217,7 +217,8 @@ def update_output(value):
             title=dict(text="Zonal SWE"),
             xaxis=dict(title="Date"),
             yaxis=dict(title="SWE (mm)"),
-        )
+            height=700,
+        ),
     )
 
     zone_ids = zones[zones["Segment"] == value].index.values
