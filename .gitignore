@@ -1,5 +1,7 @@
 # Project specific
-nb_paths.py
+dash/nb_paths.py
+dash/gunicorn.pid
+notebooks/nb_paths.py
 experiments/
 
 # DBeaver

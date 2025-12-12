@@ -5,7 +5,7 @@ DROP FUNCTION public.cbrfc_zone_buffer;
 CREATE OR REPLACE FUNCTION public.cbrfc_zone_buffer(zone_name TEXT)
   RETURNS TABLE(geom geometry, buffered_envelope geometry)
   LANGUAGE SQL
-AS $function$ 
+AS $function$
     WITH cbrfc_zone AS (
         select geom from cbrfc_zones czu where zone = zone_name
     )
@@ -20,17 +20,19 @@ $function$;
 --  2. Get target CBRFC zone and transform to SRID from target raster
 DROP FUNCTION IF EXISTS public.transform_zone;
 CREATE OR REPLACE FUNCTION public.transform_zone(product TEXT, zone_name TEXT)
-  RETURNS TABLE (cbrfc_zone_geom geometry, transformed_envelope geometry)
+  RETURNS TABLE (geom geometry, transformed_envelope geometry)
   LANGUAGE plpgsql
 AS $function$
 BEGIN
     RETURN QUERY EXECUTE FORMAT(
         'WITH raster_srid AS (
-            SELECT ST_SRID(%1$I.rast) AS epsg FROM %1$I LIMIT 1
-        ) 
-        SELECT ST_TRANSFORM(geom, raster_srid.epsg) as geom, 
-            ST_TRANSFORM(buffered_envelope, raster_srid.epsg) as transform_envelope
-            FROM public.cbrfc_zone_buffer($1), raster_srid',
+            SELECT ST_SRID(%1$I.rast) AS epsg FROM %1$I ORDER BY %1$I.rid LIMIT 1
+        )
+        SELECT
+            ST_TRANSFORM(cz.geom, raster_srid.epsg),
+            ST_TRANSFORM(cz.buffered_geom, raster_srid.epsg)
+        FROM cbrfc_zones cz, raster_srid
+        WHERE cz.zone = $1',
         product
     ) USING zone_name;
 END
@@ -50,29 +52,55 @@ AS $function$
 BEGIN
     RETURN QUERY EXECUTE FORMAT(
         'WITH cbrfc_zone AS (
-            SELECT * from transform_zone($1 , $2)
-        ), 
+            SELECT * FROM transform_zone($1, $2)
+        ),
         product_pixels AS (
-            SELECT (ST_PixelAsCentroids(
-                ST_CLIP(
-                    %1$I.rast,
-                    cbrfc_zone.transformed_envelope,
-                    true
+            SELECT
+                (ST_PixelAsCentroids(
+                    ST_CLIP(r.rast, cz.geom, true)
                 )
-            )).*
-            FROM %1$I, cbrfc_zone
-            WHERE %1$I.swe_date = TO_DATE($3, ''YYYY-MM-DD'') 
-            AND ST_Intersects(
-                %1$I.rast, cbrfc_zone.transformed_envelope
-            )
+            ).*
+            FROM %1$I AS r
+            JOIN cbrfc_zone AS cz ON r.rast && cz.transformed_envelope
+            WHERE r.swe_date = TO_DATE($3, ''YYYY-MM-DD'')
         )
-        SELECT product_pixels.val, product_pixels.geom
-        FROM product_pixels, cbrfc_zone
-        WHERE ST_WITHIN(
-            product_pixels.geom, cbrfc_zone.geom
-        )',
+        SELECT pp.val, pp.geom
+        FROM product_pixels as pp',
         product
     ) USING product, zone_name, target_date;
+END
+$function$
+;
+
+-- Function to query a SWE product for given zone across all available dates
+
+DROP FUNCTION IF EXISTS public.swe_from_product_for_zone;
+CREATE OR REPLACE FUNCTION public.swe_from_product_for_zone(
+    product text, zone_name text
+)
+RETURNS TABLE(swe_date date, swe double PRECISION)
+LANGUAGE plpgsql
+AS $function$
+BEGIN
+    RETURN QUERY EXECUTE FORMAT(
+        'WITH cbrfc_zone AS (
+            SELECT * FROM transform_zone($1, $2)
+        ),
+        product_pixels AS (
+            SELECT
+                (ST_PixelAsCentroids(
+                    ST_CLIP(r.rast, cz.geom, true)
+                )
+            ).*,
+            r.swe_date
+            FROM %1$I AS r
+            JOIN cbrfc_zone AS cz ON r.rast && cz.transformed_envelope
+        )
+        SELECT pp.swe_date, avg(pp.val)
+        FROM product_pixels as pp
+        GROUP BY pp.swe_date',
+        product
+    ) USING product, zone_name;
 END
 $function$
 ;
