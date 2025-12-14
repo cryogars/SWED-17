@@ -25,13 +25,16 @@ CREATE OR REPLACE FUNCTION public.transform_zone(product TEXT, zone_name TEXT)
 AS $function$
 BEGIN
     RETURN QUERY EXECUTE FORMAT(
-        'WITH raster_srid AS (
+        'WITH zone_buffer as (
+           SELECT * FROM cbrfc_zone_buffer($1)
+        ),
+        raster_srid AS (
             SELECT ST_SRID(%1$I.rast) AS epsg FROM %1$I ORDER BY %1$I.rid LIMIT 1
         )
         SELECT
             ST_TRANSFORM(cz.geom, raster_srid.epsg),
-            ST_TRANSFORM(cz.buffered_geom, raster_srid.epsg)
-        FROM cbrfc_zones cz, raster_srid
+            ST_TRANSFORM(zb.buffered_envelope, raster_srid.epsg)
+        FROM cbrfc_zones cz, raster_srid, zone_buffer zb
         WHERE cz.zone = $1',
         product
     ) USING zone_name;
