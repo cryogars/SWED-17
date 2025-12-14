@@ -7,7 +7,7 @@ experiments/
 # DBeaver
 .project
 .dbeaver
-dbeaver/Scripts/Script.sql
+dbeaver/
 
 # Directory for log files
 logs/
