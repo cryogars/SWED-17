@@ -34,7 +34,7 @@ CREATE INDEX zone_idx ON cbrfc_zones(zone);
 -- Fix import column name
 ALTER TABLE cbrfc_zones RENAME COLUMN descriptoi TO description;
 
--- Create table with Ch5 IDs to link with ASO tables
+-- Create table with Ch5 IDs to link with tables
 CREATE TABLE cbrfc_ch5id AS
 SELECT ROW_NUMBER() OVER (ORDER BY ch5_id) AS ID, * FROM 
    (SELECT DISTINCT ch5_id FROM cbrfc_zones cz);

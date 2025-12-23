@@ -11,8 +11,16 @@
 # Example call
 #   aso_import.sh -s data/ASO_SWE.tif -d data/20240101_SWE
 #
+# Produce extent with:
+# gdalbuildvrt -separate -input_file_list file_list.txt ASO_SWE.vrt
+#
 # Flights in 13N extent
-#   -te 231453.000 4129449.623 446853.203 4530200.00
+#   -te 231453.000 4129449.721 446853.150 4530200.00 \
+#   -tr 50.000034858275846 50.000034858275846 \
+#
+# Flights in 12N extent
+#   -te 464450.000 4147205.553 776700.210 4810356.000 \
+#   -tr 50.000033696333333 50.000033696333333 \
 
 set -e
 
@@ -25,7 +33,7 @@ DB_FILE="${DB_FILE}_db.tif"
 
 gdalwarp \
     -overwrite -multi \
-    -te 231453.000 4129449.623 446853.203 4530200.00 \
+    -te 231453.000 4129449.721 446853.150 4530200.00 \
     -dstnodata -9999 \
     -co TILED=YES \
     -co COMPRESS=ZSTD \
