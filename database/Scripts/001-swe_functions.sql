@@ -76,12 +76,62 @@ $function$
 ;
 
 -- Function to query a SWE product for given zone across all available dates
-
+-- This will only return values when there is at least 95% coverage and the
+-- SWE not null.
 DROP FUNCTION IF EXISTS public.swe_from_product_for_zone;
 CREATE OR REPLACE FUNCTION public.swe_from_product_for_zone(
     product text, zone_name text
 )
-RETURNS TABLE(swe_date date, swe double PRECISION)
+RETURNS TABLE(swe_date date, swe double PRECISION, coverage double PRECISION)
+LANGUAGE plpgsql
+AS $function$
+BEGIN
+    RETURN QUERY EXECUTE FORMAT(
+        'WITH cbrfc_zone AS (
+            SELECT geom, ST_AREA(geom) as zone_area
+            FROM transform_zone($1, $2)
+        ),
+        tile_stats AS (
+            SELECT (
+              ST_SummaryStats(
+                ST_Clip(r.rast, cz.geom, true)
+              )
+            ).* as stats,
+            r.swe_date,
+            ST_PixelWidth(r.rast) * ST_PixelHeight(r.rast) as pixel_size,
+            cz.zone_area
+            FROM %1$I AS r
+            JOIN cbrfc_zone AS cz ON ST_INTERSECTs(r.rast, cz.geom)
+        ),
+        date_values AS (
+          SELECT
+            swe_date,
+            -- Weighted average: (sum of values) / (count of pixels)
+            SUM(stats.sum) / NULLIF(SUM(stats.count), 0) as swe,
+            (SUM(stats.count) * AVG(pixel_size)) / AVG(zone_area) as coverage
+          FROM tile_stats as stats
+          GROUP BY stats.swe_date
+        )
+        SELECT *
+        FROM date_values
+        WHERE swe IS NOT NULL AND coverage > 0.95
+        ORDER BY swe_date ASC
+        ',
+        product
+    ) USING product, zone_name;
+END
+$function$
+;
+
+-- Function to query by zone returning all dates and associated geom. The
+-- geom column wil combine all centroids to a multi-polygon. This function
+-- is mostly helpful for debugging purposes.
+
+DROP FUNCTION IF EXISTS public.swe_from_product_for_zone_with_geom;
+CREATE OR REPLACE FUNCTION public.swe_from_product_for_zone_with_geom(
+    product text, zone_name text
+)
+RETURNS TABLE(swe_date date, swe double PRECISION, geom geometry)
 LANGUAGE plpgsql
 AS $function$
 BEGIN
@@ -99,7 +149,10 @@ BEGIN
             FROM %1$I AS r
             JOIN cbrfc_zone AS cz ON r.rast && cz.transformed_envelope
         )
-        SELECT pp.swe_date, avg(pp.val)
+        SELECT
+          pp.swe_date,
+          avg(pp.val) as SWE,
+          ST_COLLECT(pp.geom)
         FROM product_pixels as pp
         GROUP BY pp.swe_date',
         product
