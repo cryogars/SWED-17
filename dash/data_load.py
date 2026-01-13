@@ -17,6 +17,17 @@ SELECT *
     cbrfc_zone_id in ({}) AND
     date >= to_date({}, 'YYYY-MM-DD')
 """
+ZONE_NAME = "Zone Name"
+DATA_COLUMNS = [
+    "Date",
+    ZONE_NAME,
+    "iSnobal",
+    "SNODAS",
+    "UArizona",
+    "CU Boulder",
+    "ASO",
+    "ID",
+]
 
 def available_zones():
     zone_ids = []
@@ -32,8 +43,8 @@ def available_zones():
     with SWE_DB.query(zone_query) as results:
         zones = pd.DataFrame(
             results.fetchall(),
-            columns=['ID', 'CH5ID', 'Segment', 'Zone Name', 'Description']
-        ).set_index('ID')
+            columns=["ID", "CH5ID", "Segment", ZONE_NAME, "Description"],
+        ).set_index("ID")
 
     return zones
 
@@ -46,18 +57,9 @@ def swe_for_zone(zone_ids: list, date: str):
     with SWE_DB.query(zone_query) as results:
         swe = pd.DataFrame(
             results.fetchall(),
-            columns=[
-                "Date",
-                "Zone Name",
-                "iSnobal",
-                "SNODAS",
-                "UArizona",
-                "CU Boulder",
-                "ASO",
-                "ID",
-            ],
+            columns=DATA_COLUMNS,
         )
-    swe["Zone Name"] = swe["Zone Name"].astype("string")
+    swe[ZONE_NAME] = swe[ZONE_NAME].astype("string")
 
     return swe
 
@@ -65,7 +67,7 @@ def swe_for_zone(zone_ids: list, date: str):
 def snow_17_swe_for_zone(zone_id: str, date: str):
     df = SNOW17_DB.for_zone_forecasted(zone_id, from_year=date[0:4])
     df.rename(columns={"SWE (mm)": "Snow-17"}, inplace=True)
-    df["Zone Name"] = df["Zone Name"].astype("string")
+    df[ZONE_NAME] = df[ZONE_NAME].astype("string")
     # Need to reset index to be able to merge on Date and Zone Name
     df = df.reset_index()
     df["Date"] = df["Date"].dt.tz_localize("UTC")
