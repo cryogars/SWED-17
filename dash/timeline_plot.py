@@ -8,6 +8,7 @@ COLORS = {
     'LF': 'darkorchid',
     'OF': 'seagreen',
 }
+MM_IN_INCH = 25.4
 
 
 def add_scatter_line(df_group: pd.DataFrame, product: str, zone_index: str):
@@ -65,7 +66,7 @@ def add_scatter_line(df_group: pd.DataFrame, product: str, zone_index: str):
 
     return go.Scatter(
         x=df_group.index.tolist(),
-        y=df_group[product],
+        y=(df_group[product] / MM_IN_INCH),
         name=f"{product} {zone_index}",
         **style_opts,
     )

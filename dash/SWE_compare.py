@@ -14,7 +14,6 @@ import dash_bootstrap_components as dbc
 START_DATE = "2020-10-01"
 DATASETS = ["Snow-17", "iSnobal", "SNODAS", "UArizona", "CU Boulder", "ASO"]
 
-
 # Dash App
 # --------
 zones = available_zones()
@@ -82,7 +81,7 @@ def update_output(value):
         layout=go.Layout(
             title=dict(text="Zonal SWE"),
             xaxis=dict(title="Date"),
-            yaxis=dict(title="SWE (mm)"),
+            yaxis=dict(title="SWE (in)"),
             height=700,
         ),
     )
@@ -101,6 +100,7 @@ def update_output(value):
         zone_index = name[6:8]
         for dataset in DATASETS:
             figure.add_trace(add_scatter_line(df_group, dataset, zone_index))
+
     figure.update_traces(visible=True)
     figure.update_layout(template="plotly_white")
 
