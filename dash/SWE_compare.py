@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import sys
+
 from nb_paths import HOST_IP
 from config import DATASETS
 from data_load import available_zones, load_and_group
@@ -151,4 +153,9 @@ def update_stats(value):
 
 
 if __name__ == '__main__':
-    app.run(host=HOST_IP)
+    if len(sys.argv) > 1 and sys.argv[1] == "--debug":
+        app.run(
+            host="0.0.0.0", debug=True, use_reloader=True, dev_tools_ui=True
+        )
+    else:
+        app.run(host=HOST_IP)
