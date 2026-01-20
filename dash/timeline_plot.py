@@ -26,7 +26,7 @@ def add_scatter_line(df_group: pd.DataFrame, product: str, zone_index: str):
             "mode": "lines",
             "line": {
                 "color": COLORS[zone_index],
-                "dash": "16px 3px",
+                "dash": "20px 2px",
             },
         }
     elif product == "UArizona":
@@ -34,7 +34,7 @@ def add_scatter_line(df_group: pd.DataFrame, product: str, zone_index: str):
             "mode": "lines",
             "line": {
                 "color": COLORS[zone_index],
-                "dash": "24px 3px",
+                "dash": "6px 2px 3px 2px",
             },
         }
     elif product == "CU Boulder":
