@@ -4,8 +4,8 @@
 import pandas as pd
 
 from nb_paths import HOST_IP
-from data_load import available_zones, swe_for_zone, snow_17_swe_for_zone
 from config import DATASETS
+from data_load import available_zones, load_and_group
 from timeline_plot import add_scatter_line
 
 import plotly.graph_objects as go
@@ -84,20 +84,9 @@ def update_output(value):
         ),
     )
 
-    zone_ids = zones[zones["Segment"] == value].index.values
-    segment = value[0:6]
-
-    df = pd.merge(
-        snow_17_swe_for_zone(segment, START_DATE),
-        swe_for_zone(zone_ids, START_DATE),
-        on=["Date", "Zone Name"],
-        how="inner",
-    ).set_index("Date")
-
-    for name, df_group in df.groupby("Zone Name"):
-        zone_index = name[6:8]
+    for name, df_group in load_and_group(value, zones):
         for dataset in DATASETS:
-            figure.add_trace(add_scatter_line(df_group, dataset, zone_index))
+            figure.add_trace(add_scatter_line(df_group, dataset, name[6:8]))
 
     figure.update_traces(visible=True)
     figure.update_layout(template="plotly_white")

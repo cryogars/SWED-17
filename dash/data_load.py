@@ -2,8 +2,11 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 
+from pandas.api.typing import DataFrameGroupBy
 from psycopg import sql
+
 from nb_paths import SWE_DB, SNOW17_DB, MODEL_DOMAINS, BASIN_DIR
+from config import START_DATE
 
 ZONE_QUERY = """
 SELECT cz.gid, cc.ch5_id, cz.segment, cz.zone, cc.description
@@ -72,3 +75,17 @@ def snow_17_swe_for_zone(zone_id: str, date: str):
     df = df.reset_index()
     df["Date"] = df["Date"].dt.tz_localize("UTC")
     return df
+
+
+def load_and_group(value: str, zones: pd.DataFrame) -> DataFrameGroupBy:
+    zone_ids = zones[zones["Segment"] == value].index.values
+    segment = value[0:6]
+
+    df = pd.merge(
+        snow_17_swe_for_zone(segment, START_DATE),
+        swe_for_zone(zone_ids, START_DATE),
+        on=["Date", "Zone Name"],
+        how="inner",
+    ).set_index("Date")
+
+    return df.groupby("Zone Name")
