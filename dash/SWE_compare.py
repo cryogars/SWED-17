@@ -5,14 +5,12 @@ import pandas as pd
 
 from nb_paths import HOST_IP
 from data_load import available_zones, swe_for_zone, snow_17_swe_for_zone
+from config import DATASETS
 from timeline_plot import add_scatter_line
 
 import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output
 import dash_bootstrap_components as dbc
-
-START_DATE = "2020-10-01"
-DATASETS = ["Snow-17", "iSnobal", "SNODAS", "UArizona", "CU Boulder", "ASO"]
 
 # Dash App
 # --------
