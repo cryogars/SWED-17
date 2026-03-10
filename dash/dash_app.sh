@@ -3,6 +3,7 @@
 set -e
 
 APP_HOME="/nvm9/data/dash_app"
+APP_ENTRY="SWE_compare"
 ERROR_LOG="${APP_HOME}/logs/dash_error.log"
 PID_FILE="${APP_HOME}/gunicorn.pid"
 
@@ -15,7 +16,7 @@ start() {
       --daemon \
       --pid ${PID_FILE} \
       --chdir ${APP_HOME} \
-      --bind 0.0.0.0:8050 Snow17_vs_iSnobal:server &
+      --bind 0.0.0.0:8050 ${APP_ENTRY}:server &
 
   sleep 3
 
