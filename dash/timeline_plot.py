@@ -39,11 +39,10 @@ def add_scatter_line(df_group: pd.DataFrame, product: str, zone_index: str):
         }
     elif product == "CU Boulder":
         style_opts = {
-            "mode": "markers",
-            "marker": {
+            "mode": "lines",
+            "line": {
                 "color": COLORS[zone_index],
-                "symbol": "triangle-up",
-                "size": 10,
+                "dash": "2px 3px 2px",
             },
         }
     elif product == "ASO":
