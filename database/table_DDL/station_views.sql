@@ -7,6 +7,7 @@ SELECT
     snst.station_triplet,
     snst.station_name,
     snst.geometry,
+    snst.elevation,
     LOWER(isb.basin_name) AS basin_name
 FROM
     public.snotel_sites AS snst
