@@ -11,7 +11,8 @@ from config import START_DATE
 ZONE_QUERY = """
 SELECT cz.gid, cc.ch5_id, cz.segment, cz.zone, cc.description
  FROM cbrfc_zones cz LEFT JOIN cbrfc_ch5id cc ON cz.ch5_id = cc.id
- WHERE cz.gid in ({});
+ WHERE cz.gid in ({})
+ ORDER BY cz.ch5_id;
 """
 SWE_QUERY = """
 SELECT *
