@@ -75,7 +75,7 @@ def snow_17_swe_for_zone(zone_id: str, date: str):
     # Need to reset index to be able to merge on Date and Zone Name
     df = df.reset_index()
     df["Date"] = df["Date"].dt.tz_localize("UTC")
-    return df
+    return df.dropna(subset=["Snow-17"])
 
 
 def load_and_group(value: str, zones: pd.DataFrame) -> DataFrameGroupBy:
