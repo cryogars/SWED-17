@@ -1,17 +1,13 @@
-import xarray as xr
-import numpy as np
 import pandas as pd
 
 from pandas.api.typing import DataFrameGroupBy
 from psycopg import sql
 
-from nb_paths import SWE_DB, SNOW17_DB, MODEL_DOMAINS, BASIN_DIR
+from nb_paths import SWE_DB, SNOW17_DB
 from config import START_DATE
 
 ZONE_QUERY = """
-SELECT cz.gid, cc.ch5_id, cz.segment, cz.zone, cc.description
- FROM cbrfc_zones cz LEFT JOIN cbrfc_ch5id cc ON cz.ch5_id = cc.id
- WHERE cz.gid in ({});
+SELECT gid, fgid, segment, zone, description from cbrfc_zones_in_isnobal;
 """
 SWE_QUERY = """
 SELECT *
@@ -33,17 +29,7 @@ DATA_COLUMNS = [
 ]
 
 def available_zones():
-    zone_ids = []
-
-    for domain in MODEL_DOMAINS:
-        domain = xr.open_dataset(BASIN_DIR + f"/{domain}_topo.nc")
-        zone_ids = np.append(zone_ids, np.unique(domain.cbrfc_zone.values))
-
-    zone_query = sql.SQL(ZONE_QUERY).format(
-        sql.SQL(",").join(map(sql.Literal, zone_ids))
-    )
-
-    with SWE_DB.query(zone_query) as results:
+    with SWE_DB.query(ZONE_QUERY) as results:
         zones = pd.DataFrame(
             results.fetchall(),
             columns=["ID", "CH5ID", "Segment", ZONE_NAME, "Description"],
@@ -53,11 +39,11 @@ def available_zones():
 
 
 def swe_for_zone(zone_ids: list, date: str):
-    zone_query = sql.SQL(SWE_QUERY).format(
+    query = sql.SQL(SWE_QUERY).format(
         sql.SQL(",").join(map(sql.Literal, zone_ids)), date
     )
 
-    with SWE_DB.query(zone_query) as results:
+    with SWE_DB.query(query) as results:
         swe = pd.DataFrame(
             results.fetchall(),
             columns=DATA_COLUMNS,
@@ -74,7 +60,7 @@ def snow_17_swe_for_zone(zone_id: str, date: str):
     # Need to reset index to be able to merge on Date and Zone Name
     df = df.reset_index()
     df["Date"] = df["Date"].dt.tz_localize("UTC")
-    return df
+    return df.dropna(subset=["Snow-17"])
 
 
 def load_and_group(value: str, zones: pd.DataFrame) -> DataFrameGroupBy:

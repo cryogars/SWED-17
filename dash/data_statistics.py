@@ -1,16 +1,16 @@
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import plotly.graph_objects as go
 
 from plotly.subplots import make_subplots
 from scipy import integrate
-from pandas import Series
 
 from config import START_DATE, END_YEAR, DATASETS
 from timeline_plot import MM_IN_INCH
 
 
-def pairwise_statistics(data_a: Series, data_b: Series) -> dict:
+def pairwise_statistics(data_a: npt.NDArray, data_b: npt.NDArray) -> dict:
     """
     Calculate similiarity statistics between the two given datasets.
     Current statistics:
@@ -105,7 +105,9 @@ def generate_statistics(data: pd.DataFrame) -> dict:
                         "rmse": 1,
                     }
                 else:
-                    value = pairwise_statistics(year_data[col_a], year_data[col_b])
+                    value = pairwise_statistics(
+                        year_data[col_a].values, year_data[col_b].values
+                    )
 
                 overlapping.loc[col_a, col_b] = value["overlapping"]
                 timing_shift.loc[col_a, col_b] = value["timing_shift"]
