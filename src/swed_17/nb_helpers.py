@@ -6,7 +6,8 @@ def start_cluster(n_workers=10, memory_limit='4GB', local=True):
         cluster = Client(
             n_workers=n_workers,
             threads_per_worker=1,
-            memory_limit=memory_limit
+            memory_limit=memory_limit,
+            dashboard_address=":8797",
         )
     else:
         # NOTE:
