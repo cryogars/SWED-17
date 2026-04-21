@@ -28,16 +28,15 @@ VALUES (
 'Yampa', ST_Transform(ST_MakeEnvelope(270140.438, 4426191.500, 365340.438, 4530491.500, 32613), 4326)
 );
 
--- Show all cbrfc zones within iSnobal model domains
-DROP VIEW IF EXISTS public.cbrfc_zones_in_isnobal;
-CREATE OR REPLACE VIEW public.cbrfc_zones_in_isnobal AS
-SELECT
-    cz.gid,
+-- Show all cbrfc zones with CH5ID description within iSnobal model domains
+DROP VIEW public.cbrfc_zones_in_isnobal;
+CREATE OR REPLACE VIEW public.cbrfc_zones_in_isnobal
+AS SELECT cz.gid,
     cz.fgid,
     cz.segment,
-    cz.ZONE,
-    lower(isb.basin_name) AS basin_name
-FROM
-  cbrfc_zones cz
-JOIN isnobal_domains isb ON
-    st_within(cz.geom, ST_Transform(isb.geometry, ST_SRID(cz.geom)));
+    cz.zone,
+    cc.description,
+    lower(isb.basin_name::text) AS basin_name
+   FROM isnobal_domains isb
+     JOIN cbrfc_zones cz ON ST_WITHIN(cz.geom, st_transform(isb.geometry, st_srid(cz.geom)))
+     LEFT JOIN cbrfc_ch5id cc ON cz.ch5_id = cc.id;
