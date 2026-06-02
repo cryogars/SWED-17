@@ -3,7 +3,7 @@
 set -e
 
 APP_HOME="/nvm9/data/dash_app"
-APP_ENTRY="SWE_compare"
+APP_ENTRY="app"
 ERROR_LOG="${APP_HOME}/logs/dash_error.log"
 PID_FILE="${APP_HOME}/gunicorn.pid"
 
