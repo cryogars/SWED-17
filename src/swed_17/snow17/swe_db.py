@@ -21,7 +21,7 @@ class SweDB:
         )
 
     def __init__(self, connection_info: str) -> None:
-        self._connection_info = connection_info
+        self.engine = create_engine(connection_info)
 
     def query(
         self, query: str, dataframe=True, **kwargs
@@ -41,11 +41,11 @@ class SweDB:
         list or DataFrame
             Query result
         """
-        engine = create_engine(self._connection_info)
-        with engine.connect() as connection:
+        with self.engine.connect() as connection:
+            result = None
             if dataframe:
                 result = pd.read_sql_query(
-                    text(query), engine, params=kwargs
+                    text(query), self.engine, params=kwargs
                 )
             else:
                 cursor = connection.execute(text(query), kwargs)
