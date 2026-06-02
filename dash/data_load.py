@@ -1,4 +1,5 @@
 import pandas as pd
+import functools
 
 from pandas.api.typing import DataFrameGroupBy
 from psycopg import sql
@@ -28,6 +29,7 @@ DATA_COLUMNS = [
     "ID",
 ]
 
+@functools.lru_cache(maxsize=None)
 def available_zones():
     with SWE_DB.query(ZONE_QUERY) as results:
         zones = pd.DataFrame(
