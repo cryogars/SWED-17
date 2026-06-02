@@ -25,7 +25,12 @@ start() {
 
 stop() {
   if [ -s "${PID_FILE}" ]; then
-    kill $(cat ${PID_FILE})
+    local pid=$(cat "${PID_FILE}")
+    if kill -0 "$pid" 2>/dev/null; then
+      kill "$pid"
+    else
+      rm -f "${PID_FILE}"
+    fi
   fi
 }
 
