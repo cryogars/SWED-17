@@ -65,7 +65,8 @@ def snow_17_swe_for_zone(zone_id: str, date: str):
     return df.dropna(subset=["Snow-17"])
 
 
-def load_and_group(value: str, zones: pd.DataFrame) -> DataFrameGroupBy:
+def load_and_group(value: str) -> DataFrameGroupBy:
+    zones = available_zones()
     zone_ids = zones[zones["Segment"] == value].index.values
     segment = value[0:6]
 
