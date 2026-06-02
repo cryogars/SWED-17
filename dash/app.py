@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import sys
 import os
-import dash
+import sys
 
-from nb_paths import HOST_IP
-from dash import Dash
 import dash_bootstrap_components as dbc
+from nb_paths import HOST_IP
+
+import dash
+from dash import Dash
 
 # Dash App
 # --------
