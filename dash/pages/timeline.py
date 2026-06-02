@@ -1,14 +1,15 @@
-import dash
-from dash import dcc, html, Input, Output, callback
+from typing import Optional
 
-import plotly.graph_objects as go
 import dash_bootstrap_components as dbc
-
+import plotly.graph_objects as go
 from config import DATASETS
 from data_load import load_and_group
+from metrics import METRIC_OPTIONS, metric_bar_chart
 from timeline_plot import add_scatter_line
 from ui_elements import zone_dropdown
-from data_statistics import generate_statistics, plot_year
+
+import dash
+from dash import Input, Output, callback, dcc, html
 
 dash.register_page(__name__, path='/')
 
@@ -44,17 +45,36 @@ layout = dbc.Container(
                 ),
             ]
         ),
-        # dbc.Row(
-        #     dbc.Col(
-        #         [
-        #             html.H3("Yearly Statistics", className="mt-4"),
-        #             dbc.Spinner(
-        #                 html.Div(id="swe-stats"),
-        #                 color="success",
-        #             ),
-        #         ]
-        #     )
-        # ),
+        dbc.Row(
+            [
+                dbc.Row(
+                    [
+                        html.H3("SWE Comparison Metrics", className="mt-4"),
+                        dcc.Markdown(
+                            "Metrics are calculated relative to Snow-17."
+                        ),
+                    ]
+                ),
+                dbc.Col(
+                    [
+                        dbc.Label("Current Metric:"),
+                        dbc.Spinner(
+                            dbc.RadioItems(
+                                id="metric-selector",
+                                options=METRIC_OPTIONS,
+                                value="net",
+                                inline=True,
+                            ),
+                            color="success",
+                        ),
+                    ],
+                    md=6,
+                    xs=12,
+                    className="mb-3",
+                ),
+            ]
+        ),
+        dbc.Row([dbc.Col(dcc.Graph(id="performance-graph"), width=12)]),
     ],
     fluid=True,
 )
@@ -85,45 +105,23 @@ def update_timeline(value):
 
     return figure
 
-# @callback(
-#     Output("swe-stats", "children"), [Input("segment-dropdown", "value")]
-# )
-def update_stats(value):
-    children = []
-    year_stats = {}
+@callback(
+    Output("performance-graph", "figure"),
+    Input("segment-dropdown", "value"),
+    Input("metric-selector", "value"),
+)
+def update_graph(segment: Optional[str], metric: str) -> go.Figure | None:
+    """
+    Update the statistics figure with the selected segment and metric.
 
-    if value is None:
-        return children
+    Args:
+        segment: Selected zone segment from the dropdown.
+        metric: Metric column name to plot.
 
-    for name, df_group in load_and_group(value):
-        year_stats[name] = generate_statistics(df_group)
+    Returns:
+        Plotly Figure object or None if no segment is passed in.
+    """
+    if segment is None:
+        return None
 
-    for zone_name, all_years in year_stats.items():
-        accordion_years = []
-        for year, data in all_years.items():
-            accordion_years.append(
-                dbc.AccordionItem(
-                    dcc.Graph(figure=plot_year(data)),
-                    title=year,
-                )
-            )
-
-        children.append(
-            dbc.Row(
-                dbc.Col(
-                    dbc.Accordion(
-                        dbc.AccordionItem(
-                            dbc.Accordion(
-                                accordion_years,
-                                start_collapsed=True,
-                            ),
-                            title=zone_name,
-                        ),
-                        start_collapsed=True,
-                    )
-                ),
-                className="mt-4",
-            )
-        )
-
-    return children
+    return metric_bar_chart(segment, metric)
