@@ -28,6 +28,7 @@ class Base:
 
     def __init__(self, connection_info: str):
         self._connection_info = connection_info
+        self.engine = create_engine(self.pd_connection_info())
 
     @contextmanager
     def query(self, query: str, params: dict = {}, row_factory={}) -> Cursor[TupleRow]:
@@ -74,8 +75,7 @@ class Base:
             Table name to write to
         """
 
-        engine = create_engine(self.pd_connection_info())
-        with engine.connect() as connection:
+        with self.engine.connect() as connection:
             dataframe.to_sql(
                 table_name, con=connection, if_exists="append", index=False
             )
