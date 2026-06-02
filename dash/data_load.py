@@ -7,7 +7,7 @@ from nb_paths import SWE_DB, SNOW17_DB
 from config import START_DATE
 
 ZONE_QUERY = """
-SELECT gid, fgid, segment, zone, description from cbrfc_zones_in_isnobal;
+SELECT gid, fgid, segment, zone, description from cbrfc_zones_in_isnobal order by zone ASC;
 """
 SWE_QUERY = """
 SELECT *
