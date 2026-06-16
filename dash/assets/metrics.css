@@ -2,11 +2,11 @@
     background-color: rgba(70, 130, 180, 0.5); /* steelblue */
 }
 
-.middle-zone {
+.lower-zone {
     background-color: rgba(153, 50, 204, 0.5); /* darkorchid */
 }
 
-.lower-zone {
+.middle-zone {
     background-color: rgba(218, 165, 32, 0.5); /* goldenrod */
 }
 
