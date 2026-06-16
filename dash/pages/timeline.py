@@ -20,7 +20,7 @@ layout = dbc.Container(
             [
                 dbc.Col(
                     zone_dropdown(),
-                    width=5,
+                    width=8,
                 ),
             ]
         ),
