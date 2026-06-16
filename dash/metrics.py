@@ -111,3 +111,25 @@ def metric_bar_chart(segment: Optional[str], metric: str) -> Figure | None:
     fig.update_layout(transition_duration=300)
 
     return fig
+
+
+TABLE_DATA_QUERY = """
+SELECT  cz.zone AS "Zone Name", sm.year, sm.name, sm.magnitude, sm.net, sm.mae, cc.description
+FROM swe_metrics sm
+LEFT JOIN cbrfc_zones cz ON sm.cbrfc_id = cz.gid
+LEFT JOIN cbrfc_ch5id cc ON cz.ch5_id = cc.id
+"""
+TABLE_DATA_COLUMNS = [
+    "Zone Name",
+    "Year",
+    "Data Source",
+    "Magnitude",
+    "Net Difference",
+    "Mean Daily Difference",
+    "Segment",
+]
+
+
+def metric_table_data():
+    with SWE_DB.query(TABLE_DATA_QUERY) as results:
+        return pd.DataFrame(results.fetchall(), columns=TABLE_DATA_COLUMNS)
