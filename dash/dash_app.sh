@@ -3,7 +3,7 @@
 set -e
 
 APP_HOME="/nvm9/data/dash_app"
-APP_ENTRY="SWE_compare"
+APP_ENTRY="app"
 ERROR_LOG="${APP_HOME}/logs/dash_error.log"
 PID_FILE="${APP_HOME}/gunicorn.pid"
 
@@ -25,7 +25,12 @@ start() {
 
 stop() {
   if [ -s "${PID_FILE}" ]; then
-    kill $(cat ${PID_FILE})
+    local pid=$(cat "${PID_FILE}")
+    if kill -0 "$pid" 2>/dev/null; then
+      kill "$pid"
+    else
+      rm -f "${PID_FILE}"
+    fi
   fi
 }
 

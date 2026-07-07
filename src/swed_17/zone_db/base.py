@@ -28,6 +28,7 @@ class Base:
 
     def __init__(self, connection_info: str):
         self._connection_info = connection_info
+        self.engine = create_engine(self.pd_connection_info())
 
     @contextmanager
     def query(self, query: str, params: dict = {}, row_factory={}) -> Cursor[TupleRow]:
@@ -61,7 +62,9 @@ class Base:
                 cursor.execute(query, params)
                 yield cursor
 
-    def write(self, dataframe: pd.DataFrame, table_name: str) -> None:
+    def write(
+        self, dataframe: pd.DataFrame, table_name: str, mode: str = "append"
+    ) -> None:
         """
         Write datafrme to the database
 
@@ -72,12 +75,19 @@ class Base:
             columns
         table_name : str
             Table name to write to
+        mode : str, optional
+            Mode for writing to the table, by default "append". Use "replace"
+            to drop the table before writing.
         """
 
-        engine = create_engine(self.pd_connection_info())
-        with engine.connect() as connection:
+        with self.engine.connect() as connection:
             dataframe.to_sql(
-                table_name, con=connection, if_exists="append", index=False
+                table_name,
+                con=connection,
+                if_exists=mode,
+                index=False,
+                method="multi",
+                chunksize=1000,
             )
 
     def pd_connection_info(self):

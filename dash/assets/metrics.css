@@ -1,0 +1,52 @@
+.upper-zone {
+    background-color: rgba(70, 130, 180, 0.5); /* steelblue */
+}
+
+.lower-zone {
+    background-color: rgba(153, 50, 204, 0.5); /* darkorchid */
+}
+
+.middle-zone {
+    background-color: rgba(218, 165, 32, 0.5); /* goldenrod */
+}
+
+.only-zone {
+    background-color: rgba(46, 139, 87, 0.5);  /* seagreen */
+}
+
+.zone-legend {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d9d9d9;
+    border-radius: 0.4rem;
+    background: #fafafa;
+}
+
+.zone-legend-title {
+    font-weight: 600;
+}
+
+.zone-legend-items {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.zone-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+}
+
+.zone-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    display: inline-block;
+}
