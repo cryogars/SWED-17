@@ -1,3 +1,9 @@
+-- View to combine the two UTM tables into one
+CREATE OR REPLACE VIEW aso_swe AS
+SELECT * FROM aso_swe_12n
+UNION ALL
+SELECT * FROM aso_swe_13n;
+
 -- Function to average ASO SWE into an areal mean
 -- ASO values are in meters
 DROP FUNCTION IF EXISTS public.aso_areal_swe_for_date;
