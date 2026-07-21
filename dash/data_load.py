@@ -59,6 +59,8 @@ def snow_17_swe_for_zone(zone_id: str, date: str):
     df = SNOW17_DB.for_zone_forecasted(zone_id, from_year=date[0:4])
     df.rename(columns={"SWE (mm)": "Snow-17"}, inplace=True)
     df[ZONE_NAME] = df[ZONE_NAME].astype("string")
+    # Can't filter in the Snow-17 DB by full date.
+    df = df[df.index >= START_DATE]
     # Need to reset index to be able to merge on Date and Zone Name
     df = df.reset_index()
     df["Date"] = df["Date"].dt.tz_localize("UTC")
@@ -74,7 +76,7 @@ def load_and_group(value: str) -> DataFrameGroupBy:
         snow_17_swe_for_zone(segment, START_DATE),
         swe_for_zone(zone_ids, START_DATE),
         on=["Date", "Zone Name"],
-        how="inner",
+        how="left",
     ).set_index("Date")
 
     return df.groupby("Zone Name")
