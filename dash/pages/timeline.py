@@ -11,7 +11,7 @@ from ui_elements import zone_dropdown
 import dash
 from dash import Input, Output, callback, dcc, html
 
-dash.register_page(__name__, path='/')
+dash.register_page(__name__, path="/", order=0)
 
 layout = dbc.Container(
     [
