@@ -5,7 +5,7 @@ from metrics import metric_table_data
 import dash
 from dash import html
 
-dash.register_page(__name__, path="/statistics")
+dash.register_page(__name__, path="/statistics", order=1, name="Statistics")
 
 table_data = metric_table_data()
 column_defs = [{"field": str(i)} for i in table_data.columns]
