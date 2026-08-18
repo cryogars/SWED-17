@@ -12,15 +12,14 @@
 #   aso_import.sh -s data/ASO_SWE.tif -d data/20240101_SWE
 #
 # Produce extent with:
-# gdalbuildvrt -separate -input_file_list file_list.txt ASO_SWE.vrt
+# gdal raster mosaic --resolution lowest *.tif ASO_SWE.vrt
 #
 # Flights in 13N extent
-#   -te 231453.000 4129449.721 446853.150 4530200.00 \
-#   -tr 50.000034858275846 50.000034858275846 \
+#   -te 231453.000 4129449.190 446853.435 4530200.000 \
 #
 # Flights in 12N extent
-#   -te 464450.000 4147205.553 776700.210 4810356.000 \
-#   -tr 50.000033696333333 50.000033696333333 \
+#   -te 464450.000 4147198.657 776700.631 4811700.000 \
+#
 
 set -e
 
@@ -33,7 +32,7 @@ DB_FILE="${DB_FILE}_db.tif"
 
 gdalwarp \
     -overwrite -multi \
-    -te 231453.000 4129449.721 446853.150 4530200.00 \
+    -te 231453.000 4129449.190 446853.435 4530200.000 \
     -dstnodata -9999 \
     -co TILED=YES \
     -co COMPRESS=ZSTD \

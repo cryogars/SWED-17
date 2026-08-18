@@ -1,3 +1,9 @@
+-- View to combine the two UTM tables into one
+CREATE OR REPLACE VIEW aso_swe AS
+SELECT * FROM aso_swe_12n
+UNION ALL
+SELECT * FROM aso_swe_13n;
+
 -- Function to average ASO SWE into an areal mean
 -- ASO values are in meters
 DROP FUNCTION IF EXISTS public.aso_areal_swe_for_date;
@@ -17,26 +23,18 @@ CREATE OR REPLACE FUNCTION public.aso_swe_at_station(target_station_name text)
 RETURNS TABLE(swe_date date, raw_pixel_value double precision) AS $$
 BEGIN
     RETURN QUERY EXECUTE format('
-        WITH transformed_sites AS (
-            SELECT
-                ST_Transform(ss.geometry, ST_SRID(r.rast)) AS target_geom
-            FROM
-                snotel_sites AS ss,
-                aso_swe_13n AS r
-            WHERE
-                ss.station_name = %L
-            LIMIT 1
-        )
         SELECT
-            swe_raster.swe_date,
+            r.swe_date,
             ST_Value(
-                swe_raster.rast,
-                ts.target_geom
-            ) AS raw_pixel_value
+                r.rast,
+                ST_Transform(ss.geometry, ST_SRID(r.rast))
+            )
         FROM
-            aso_swe_13n AS swe_raster
-        JOIN
-            transformed_sites AS ts ON  swe_raster.rast && ts.target_geom;
+            snotel_sites AS ss,
+            aso_swe AS r
+        WHERE
+            ss.station_name = %L
+            AND r.rast && ST_Transform(ss.geometry, ST_SRID(r.rast));
     ',
         target_station_name
     );

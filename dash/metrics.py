@@ -114,10 +114,11 @@ def metric_bar_chart(segment: Optional[str], metric: str) -> Figure | None:
 
 
 TABLE_DATA_QUERY = """
-SELECT  cz.zone AS "Zone Name", sm.year, sm.name, sm.magnitude, sm.net, sm.mae, cc.description
+SELECT cz.zone AS "Zone Name", sm.year, sm.name, sm.magnitude, sm.net, sm.mae, cc.description
 FROM swe_metrics sm
 LEFT JOIN cbrfc_zones cz ON sm.cbrfc_id = cz.gid
 LEFT JOIN cbrfc_ch5id cc ON cz.ch5_id = cc.id
+ORDER BY sm.cbrfc_id, sm.year, sm.name
 """
 TABLE_DATA_COLUMNS = [
     "Zone Name",
