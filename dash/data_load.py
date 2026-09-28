@@ -1,36 +1,28 @@
-import pandas as pd
 import functools
 
+import pandas as pd
+from config import DATASETS, START_DATE
+from nb_paths import SNOW17_DB, SWE_DB
 from pandas.api.typing import DataFrameGroupBy
 from psycopg import sql
-
-from nb_paths import SWE_DB, SNOW17_DB
-from config import START_DATE
 
 ZONE_QUERY = """
 SELECT gid, fgid, segment, zone, description from cbrfc_zones_in_isnobal order by zone ASC;
 """
+# Query to load SWE data for the configured products.
+# NOTE: Update the query columns when new products are added
 SWE_QUERY = """
-SELECT *
+SELECT date, isnobal_swe, snodas_swe, ua_swe, cu_boulder_swe, aso_swe, zone_name
  FROM public.zonal_swe
  WHERE
     cbrfc_zone_id in ({}) AND
     date >= to_date({}, 'YYYY-MM-DD')
 """
+# Human readable names for query columns of SWE_QUERY
 ZONE_NAME = "Zone Name"
-DATA_COLUMNS = [
-    "Date",
-    ZONE_NAME,
-    "iSnobal",
-    "SNODAS",
-    "UArizona",
-    "CU Boulder",
-    "ASO",
-    "ID",
-]
+SWE_COLUMNS = ["Date"] + DATASETS[1:] + [ZONE_NAME]
 
-@functools.lru_cache(maxsize=None)
-def available_zones():
+
     with SWE_DB.query(ZONE_QUERY) as results:
         zones = pd.DataFrame(
             results.fetchall(),
@@ -48,9 +40,8 @@ def swe_for_zone(zone_ids: list, date: str):
     with SWE_DB.query(query) as results:
         swe = pd.DataFrame(
             results.fetchall(),
-            columns=DATA_COLUMNS,
+            columns=SWE_COLUMNS,
         )
-    swe[ZONE_NAME] = swe[ZONE_NAME].astype("string")
 
     return swe
 
