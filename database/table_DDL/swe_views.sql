@@ -9,6 +9,7 @@ AS SELECT
     COALESCE(uzs.value, 0) AS ua_swe,
     COALESCE(csz.value, 0) AS cu_boulder_swe,
     asz.value AS aso_swe,
+    cz.zone AS zone_name,
     cbrfc_zone_id
 FROM snodas_zonal_swe ssz
 FULL JOIN (
