@@ -7,9 +7,7 @@ from dash import Input, Output, callback, dcc, html
 
 dash.register_page(__name__, path="/isnobal", order=2, name="iSnobal")
 
-EARTHMOVER_BASE_URL = (
-    "https://compute.earthmover.io/v1/services/tiles/Cryogars/"
-)
+EARTHMOVER_BASE_URL = "https://tiles-bab80da7089fcdc3.compute.arraylake.app/v1/services/tiles/Cryogars/"
 EARTHMOVER_TILE = (
     EARTHMOVER_BASE_URL + "{basin}/main/tiles/WebMercatorQuad/{{z}}/{{y}}/{{x}}"
     "?variables={variable}&colorscalerange={min},{max}&time={date}T23%3A00%3A00"
@@ -26,6 +24,14 @@ COLOR_RANGE = {
     "SWI": [0, 100],
 }
 
+# Map domains to Earthmover repositories
+DOMAINS = {
+    "Colkrem": "Colkrem",
+    "ERW": "ERW-ext",
+    "SWCO": "SWCO",
+    "Yampa": "Yampa",
+}
+
 content = [
     dbc.Row(
         [
@@ -37,12 +43,8 @@ content = [
                         dcc.Dropdown(
                             id="area-selector",
                             options=[
-                                {"label": "ERW", "value": "ERW-ext"},
-                                {"label": "Colkrem", "value": "Colkrem"},
-                                {
-                                    "label": "Great Basin",
-                                    "value": "Great-Basin",
-                                },
+                                {"label": v, "value": k}
+                                for k, v in DOMAINS.items()
                             ],
                             value="ERW-ext",
                             clearable=False,
@@ -137,7 +139,11 @@ def update_tiles(basin, date, variable):
 
     min_val, max_val = COLOR_RANGE.get(variable, [0, 3])
     return EARTHMOVER_TILE.format(
-        basin=basin, date=date, variable=variable, min=min_val, max=max_val
+        basin=DOMAINS[basin],
+        date=date,
+        variable=variable,
+        min=min_val,
+        max=max_val,
     )
 
 
