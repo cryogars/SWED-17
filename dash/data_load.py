@@ -23,6 +23,14 @@ ZONE_NAME = "Zone Name"
 SWE_COLUMNS = ["Date"] + DATASETS[1:] + [ZONE_NAME]
 
 
+@functools.cache
+def available_zones() -> pd.DataFrame:
+    """
+    Get DataFrame with CBRFC zones that are avaiable in the SWE database.
+
+    Returns:
+        DataFrame with CBRFC zones
+    """
     with SWE_DB.query(ZONE_QUERY) as results:
         zones = pd.DataFrame(
             results.fetchall(),
@@ -32,7 +40,17 @@ SWE_COLUMNS = ["Date"] + DATASETS[1:] + [ZONE_NAME]
     return zones
 
 
-def swe_for_zone(zone_ids: list, date: str):
+def swe_for_zone(zone_ids: list, date: str) -> pd.DataFrame:
+    """
+    Get DataFrame with SWE data for the given CBRFC zone IDs and after the specified date.
+
+    Args:
+        zone_ids: List of CBRFC zone IDs
+        date: Date string in 'YYYY-MM-DD' format
+
+    Returns:
+        DataFrame with SWE data
+    """
     query = sql.SQL(SWE_QUERY).format(
         sql.SQL(",").join(map(sql.Literal, zone_ids)), date
     )
@@ -46,8 +64,19 @@ def swe_for_zone(zone_ids: list, date: str):
     return swe
 
 
-def snow_17_swe_for_zone(zone_id: str, date: str):
-    df = SNOW17_DB.for_zone_forecasted(zone_id, from_year=date[0:4])
+def snow_17_swe_for_zone(segment_id: str, date: str) -> pd.DataFrame:
+    """
+    Get SWE data from the SNOW-17 database for CBRFC segment ID and after the
+    specified date.
+
+    Args:
+        segment_id: CBRFC segment ID
+        date: Filter date
+
+    Returns:
+        Dataframe with SNOW-17 SWE data
+    """
+    df = SNOW17_DB.for_zone_forecasted(segment_id, from_year=date[0:4])
     df.rename(columns={"SWE (mm)": "Snow-17"}, inplace=True)
     df[ZONE_NAME] = df[ZONE_NAME].astype("string")
     # Can't filter in the Snow-17 DB by full date.
@@ -59,6 +88,16 @@ def snow_17_swe_for_zone(zone_id: str, date: str):
 
 
 def load_and_group(value: str) -> DataFrameGroupBy:
+    """
+    Prepare dataframe for timeline plot. Queries the Snow-17 and SWE DB for
+    the given segment.
+
+    Args:
+        value: Selection from the dropdown
+
+    Returns:
+        Grouped dataframe by zone name
+    """
     zones = available_zones()
     zone_ids = zones[zones["Segment"] == value].index.values
     segment = value[0:6]
