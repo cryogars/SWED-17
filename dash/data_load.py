@@ -12,7 +12,7 @@ SELECT gid, fgid, segment, zone, description from cbrfc_zones_in_isnobal order b
 # Query to load SWE data for the configured products.
 # NOTE: Update the query columns when new products are added
 SWE_QUERY = """
-SELECT date, isnobal_swe, snodas_swe, ua_swe, cu_boulder_swe, aso_swe, zone_name
+SELECT date, isnobal_swe, snodas_swe, ua_swe, cu_boulder_swe, m3w_swe, aso_swe, zone_name
  FROM public.zonal_swe
  WHERE
     cbrfc_zone_id in ({}) AND

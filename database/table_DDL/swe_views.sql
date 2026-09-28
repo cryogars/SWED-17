@@ -8,6 +8,7 @@ AS SELECT
     COALESCE(ssz.value, 0) AS snodas_swe,
     COALESCE(uzs.value, 0) AS ua_swe,
     COALESCE(csz.value, 0) AS cu_boulder_swe,
+    COALESCE(m3w.value, 0) AS m3w_swe,
     asz.value AS aso_swe,
     cz.zone AS zone_name,
     cbrfc_zone_id
@@ -21,4 +22,5 @@ FULL JOIN (
 FULL JOIN ua_zonal_swe         uzs USING (cbrfc_zone_id, datetime)
 FULL JOIN cu_boulder_zonal_swe csz USING (cbrfc_zone_id, datetime)
 FULL JOIN aso_zonal_swe        asz USING (cbrfc_zone_id, datetime)
+FULL JOIN m3w_zonal_swe        m3w USING (cbrfc_zone_id, datetime)
 LEFT JOIN cbrfc_zones          cz  ON cbrfc_zone_id = cz.gid;
