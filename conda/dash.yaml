@@ -1,0 +1,28 @@
+name: dash
+channels:
+  - conda-forge
+dependencies:
+  - dash
+  - dash-ag-grid
+  - dash-bootstrap-components
+  - dash-leaflet
+  - dash-mantine-components
+  - dask
+  - dask-core
+  - debugpy
+  - gunicorn
+  - h5netcdf
+  - holoviews
+  - hvplot
+  - ibm_db
+  - ibm_db_sa
+  - openssl
+  - pandas
+  - plotly
+  - psycopg
+  - psycopg-pool
+  - rasterio
+  - scipy
+  - sqlalchemy
+  - watchdog
+  - xarray
