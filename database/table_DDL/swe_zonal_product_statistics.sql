@@ -63,3 +63,20 @@ CREATE INDEX aso_zonal_swe_cbrfc_zone ON aso_zonal_swe
     USING btree (cbrfc_zone_id);
 CREATE INDEX aso_zonal_swe_metric ON aso_zonal_swe
     USING btree (metric_type_id);
+
+-- M3Works SWE
+DROP TABLE IF EXISTS m3w_zonal_swe;
+CREATE TABLE m3w_zonal_swe (
+    datetime TIMESTAMP WITH TIME ZONE NOT NULL,
+    Value FLOAT,
+    metric_type_id INT NOT NULL,
+    cbrfc_zone_id INT NOT NULL,
+    FOREIGN KEY (metric_type_id) REFERENCES metric_type(ID) ON DELETE CASCADE,
+    FOREIGN KEY (cbrfc_zone_id) REFERENCES cbrfc_zones(GID) ON DELETE CASCADE,
+    PRIMARY KEY(datetime, cbrfc_zone_id)
+);
+
+CREATE INDEX m3w_zonal_swe_cbrfc_zone ON m3w_zonal_swe
+    USING btree (cbrfc_zone_id);
+CREATE INDEX m3w_zonal_swe_metric ON m3w_zonal_swe
+    USING btree (metric_type_id);

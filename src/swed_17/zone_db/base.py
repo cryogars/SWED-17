@@ -1,10 +1,10 @@
-import psycopg
-import pandas as pd
-
 from contextlib import contextmanager
+from typing import ClassVar
 
+import pandas as pd
 from psycopg import Cursor
 from psycopg.rows import TupleRow
+from psycopg_pool import ConnectionPool
 from sqlalchemy import create_engine
 
 
@@ -13,9 +13,9 @@ class Base:
     Base database query class.
     """
 
-    CONNECTION_OPTIONS = dict(
-        autocommit=True,
-    )
+    CONNECTION_OPTIONS: ClassVar[dict] = {
+        "autocommit": True,
+    }
 
     PSYCOPG_PROTOCOL = "postgresql+psycopg://"
 
@@ -28,10 +28,22 @@ class Base:
 
     def __init__(self, connection_info: str):
         self._connection_info = connection_info
+        self._pool = ConnectionPool(
+            connection_info,
+            kwargs=self.CONNECTION_OPTIONS,
+            min_size=1,
+            max_size=4,
+            check=ConnectionPool.check_connection,
+        )
         self.engine = create_engine(self.pd_connection_info())
 
     @contextmanager
-    def query(self, query: str, params: dict = {}, row_factory={}) -> Cursor[TupleRow]:
+    def query(
+        self,
+        query: str,
+        params: dict | None = None,
+        row_factory: dict | None = None,
+    ) -> Cursor[TupleRow]:
         """
         Execute given query by passing in requested parameters.
 
@@ -52,15 +64,20 @@ class Base:
         Cursor
             Cursor with result from psycopg execute().
         """
-        with psycopg.connect(
-            self._connection_info, **self.CONNECTION_OPTIONS
-        ) as connection:
-            with connection.cursor() as cursor:
-                if row_factory:
-                    cursor.row_factory = row_factory
+        if params is None:
+            params = {}
+        if row_factory is None:
+            row_factory = {}
 
-                cursor.execute(query, params)
-                yield cursor
+        with (
+            self._pool.connection() as connection,
+            connection.cursor() as cursor,
+        ):
+            if row_factory:
+                cursor.row_factory = row_factory
+
+            cursor.execute(query, params)
+            yield cursor
 
     def write(
         self, dataframe: pd.DataFrame, table_name: str, mode: str = "append"

@@ -12,7 +12,6 @@ MM_IN_INCH = 25.4
 
 
 def add_scatter_line(df_group: pd.DataFrame, product: str, zone_index: str):
-    style_opts = {}
     if product == "iSnobal":
         style_opts = {
             "mode": "lines",
@@ -43,6 +42,14 @@ def add_scatter_line(df_group: pd.DataFrame, product: str, zone_index: str):
             "line": {
                 "color": COLORS[zone_index],
                 "dash": "2px 3px 2px",
+            },
+        }
+    elif product == "M3 Works":
+        style_opts = {
+            "mode": "lines",
+            "line": {
+                "color": COLORS[zone_index],
+                "dash": "8px 3px 2px",
             },
         }
     elif product == "ASO":

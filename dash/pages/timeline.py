@@ -98,7 +98,8 @@ def update_timeline(value):
 
     for name, df_group in load_and_group(value):
         for dataset in DATASETS:
-            figure.add_trace(add_scatter_line(df_group, dataset, name[6:8]))
+            if (df_group[dataset] > 0).any():
+                figure.add_trace(add_scatter_line(df_group, dataset, name[6:8]))
 
     figure.update_traces(visible=True)
     figure.update_layout(template="plotly_white")
